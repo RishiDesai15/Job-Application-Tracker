@@ -28,56 +28,6 @@ job-tracker/
 ├── app.js          # All logic: CRUD, filtering, sorting, CSV export
 └── README.md       # This file
 ```
-
----
-
-## 🚀 Hosting on GitHub Pages (Free, in ~3 minutes)
-
-### Step 1 — Create a GitHub Repository
-
-1. Go to [github.com](https://github.com) and log in (or create a free account)
-2. Click the **+** icon → **New repository**
-3. Name it something like `job-tracker` or `job-hunt`
-4. Set it to **Public** (required for free GitHub Pages)
-5. Click **Create repository**
-
-### Step 2 — Upload Your Files
-
-**Option A — Drag & Drop (easiest)**
-1. On your new repo page, click **uploading an existing file**
-2. Drag all three files into the upload box: `index.html`, `styles.css`, `app.js`
-3. Scroll down and click **Commit changes**
-
-**Option B — Git CLI**
-```bash
-git init
-git add .
-git commit -m "Initial commit: job tracker"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/job-tracker.git
-git push -u origin main
-```
-
-### Step 3 — Enable GitHub Pages
-
-1. In your repo, click **Settings** (top nav)
-2. Click **Pages** in the left sidebar
-3. Under **Source**, select **Deploy from a branch**
-4. Set branch to `main` and folder to `/ (root)`
-5. Click **Save**
-
-### Step 4 — Get Your URL 🎉
-
-After 1–2 minutes, your site will be live at:
-
-```
-https://YOUR_USERNAME.github.io/job-tracker/
-```
-
-GitHub will show you this URL in the Pages settings once it's ready.
-
-> **Tip:** Bookmark this URL. Any time you push changes to the repo, GitHub Pages will automatically redeploy.
-
 ---
 
 ## 💾 Data & Privacy
