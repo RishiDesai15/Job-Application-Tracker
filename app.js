@@ -2,7 +2,35 @@
    JOB HUNT — Application Tracker
    app.js
 =========================== */
+// ── THEME MANAGEMENT ───────────────────────
+function initTheme() {
+  const savedTheme = localStorage.getItem('jobtracker_theme') || 'dark';
+  applyTheme(savedTheme);
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+}
 
+function applyTheme(theme) {
+  const isDark = theme === 'dark';
+  if (isDark) {
+    document.documentElement.classList.remove('light-mode');
+  } else {
+    document.documentElement.classList.add('light-mode');
+  }
+  localStorage.setItem('jobtracker_theme', theme);
+  updateThemeIcon(isDark);
+}
+
+function toggleTheme() {
+  const currentTheme = localStorage.getItem('jobtracker_theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(newTheme);
+}
+
+function updateThemeIcon(isDark) {
+  const icon = document.getElementById('themeToggle');
+  icon.textContent = isDark ? '🌙' : '☀️';
+  icon.style.transform = isDark ? 'rotate(0deg)' : 'rotate(180deg)';
+}
 // ── DATA ──────────────────────
 const SAMPLE_DATA = [
   // ── November 2025 ──
@@ -351,6 +379,7 @@ let pendingDeleteId = null;
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 function init() {
+  initTheme();
   const stored = localStorage.getItem('jobtracker_apps');
   if (stored) {
     try { applications = JSON.parse(stored); }
@@ -422,6 +451,88 @@ function render() {
   tbody.innerHTML = data.map(app => rowHTML(app)).join('');
 }
 
+// ── EXPAND ROW ──────────────────────────────────────────────────────────────
+let lastClickedRow = null;
+function expandRow(id) {
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (!row) return;
+  
+  // Remove highlight from previous row
+  if (lastClickedRow && lastClickedRow !== row) {
+    lastClickedRow.style.opacity = '1';
+  }
+  
+  // Highlight current row
+  row.style.opacity = '0.7';
+  lastClickedRow = row;
+  
+  // Auto-open edit modal (optional - comment out if you prefer just highlighting)
+  // openEdit(id);
+}
+
+// ── DRAG & DROP ────────────────────────────────────────────────────────────
+let draggedRow = null;
+
+function setupDragAndDrop() {
+  const tableBody = document.getElementById('tableBody');
+  
+  tableBody.addEventListener('dragstart', (e) => {
+    if (e.target.tagName !== 'TR') return;
+    draggedRow = e.target;
+    e.target.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  
+  tableBody.addEventListener('dragend', (e) => {
+    if (e.target.tagName === 'TR') {
+      e.target.style.opacity = '1';
+    }
+    draggedRow = null;
+  });
+  
+  tableBody.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (e.target.tagName === 'TD') {
+      const targetRow = e.target.closest('tr');
+      if (targetRow && targetRow !== draggedRow) {
+        targetRow.style.borderTop = '3px solid var(--accent)';
+      }
+    }
+  });
+  
+  tableBody.addEventListener('dragleave', (e) => {
+    if (e.target.tagName === 'TD') {
+      const targetRow = e.target.closest('tr');
+      if (targetRow) {
+        targetRow.style.borderTop = 'none';
+      }
+    }
+  });
+  
+  tableBody.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!draggedRow) return;
+    
+    const targetRow = e.target.closest('tr');
+    if (targetRow && targetRow !== draggedRow) {
+      const draggedId = draggedRow.dataset.id;
+      const targetId = targetRow.dataset.id;
+      
+      // Swap in applications array
+      const draggedIdx = applications.findIndex(a => a.id === draggedId);
+      const targetIdx = applications.findIndex(a => a.id === targetId);
+      
+      if (draggedIdx !== -1 && targetIdx !== -1) {
+        [applications[draggedIdx], applications[targetIdx]] = [applications[targetIdx], applications[draggedIdx]];
+        save();
+        render();
+      }
+    }
+  });
+}
+
 function rowHTML(app) {
   const status    = app.response || '';
   const rowClass  = rowStatusClass(status);
@@ -431,7 +542,7 @@ function rowHTML(app) {
   const emailsStr = formatEmails(app.emails || '');
 
   return `
-    <tr class="${rowClass}" data-id="${app.id}">
+    <tr class="${rowClass}" data-id="${app.id}" draggable="true" onclick="expandRow('${app.id}')">
       <td class="td-company">${esc(app.company)}</td>
       <td class="td-position">${esc(app.position)}</td>
       <td>${badge}</td>
@@ -440,7 +551,7 @@ function rowHTML(app) {
       <td class="td-result" title="${esc(app.result || '')}">${esc(app.result || '—')}</td>
       <td class="td-interview" title="${esc(app.interviewTime || '')}">${interviewStr}</td>
       <td class="td-emails">${emailsStr}</td>
-      <td>
+      <td onclick="event.stopPropagation()">
         <div class="actions">
           <button class="btn-icon edit" title="Edit" onclick="openEdit('${app.id}')">✎</button>
           <button class="btn-icon del"  title="Delete" onclick="openDelete('${app.id}')">✕</button>
@@ -542,6 +653,9 @@ function rowStatusClass(status) {
 
 // ── EVENTS ─────────────────────────────────────────────────────────────────
 function bindEvents() {
+  // Drag and drop
+  setupDragAndDrop();
+  
   // Open Add modal
   document.getElementById('openModal').addEventListener('click', () => openAdd());
 

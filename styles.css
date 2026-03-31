@@ -36,6 +36,20 @@
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
 }
 
+/* Light mode */
+:root.light-mode {
+  --bg: #f8f9fc;
+  --surface: #ffffff;
+  --surface2: #f0f3f8;
+  --border: #e2e8f0;
+  --border-light: #cad5e3;
+  --text: #1e293b;
+  --muted: #64748b;
+  --muted2: #94a3b8;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -47,6 +61,7 @@ body {
   font-size: 14px;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* Subtle grid background */
@@ -163,6 +178,26 @@ header h1 {
   transform: translateY(-1px);
 }
 
+.btn-theme {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  padding: 0.6rem 0.75rem;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-theme:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: rotate(20deg) scale(1.05);
+}
+
 /* ===========================
    FILTERS
 =========================== */
@@ -231,13 +266,15 @@ header h1 {
   font-size: 11px;
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
 }
 
 .pill:hover {
   border-color: var(--accent);
   color: var(--text);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(92, 158, 255, 0.2);
 }
 
 .pill.active {
@@ -245,6 +282,7 @@ header h1 {
   border-color: var(--accent);
   color: #0d0f14;
   font-weight: 500;
+  box-shadow: 0 4px 12px rgba(92, 158, 255, 0.3);
 }
 
 .btn-export {
@@ -339,8 +377,15 @@ tbody tr {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+tbody tr {
+  cursor: grab;
+  transition: background 0.15s, opacity 0.2s, transform 0.2s;
+}
+
+tbody tr:active { cursor: grabbing; }
+
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: var(--surface2); }
+tbody tr:hover { background: var(--surface2); transform: translateX(2px); }
 
 td {
   padding: 0.75rem 1rem;
@@ -454,11 +499,22 @@ td {
   font-size: 13px;
   cursor: pointer;
   color: var(--muted);
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.btn-icon:hover.edit  { border-color: var(--accent); color: var(--accent); }
-.btn-icon:hover.del   { border-color: var(--red);    color: var(--red); }
+.btn-icon:hover.edit {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(92, 158, 255, 0.1);
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.btn-icon:hover.del {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(255, 107, 122, 0.1);
+  transform: scale(1.1) rotate(5deg);
+}
 
 /* ===========================
    EMPTY STATE
