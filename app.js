@@ -872,8 +872,10 @@ function bindEvents() {
 
   // CSV export
   document.getElementById('exportCSV').addEventListener('click', exportCSV);
-  document.getElementById('backupExportNow').addEventListener('click', exportCSV);
-  document.getElementById('backupDismiss').addEventListener('click', snoozeBackupReminder);
+  const backupExportBtn = document.getElementById('backupExportNow');
+  const backupDismissBtn = document.getElementById('backupDismiss');
+  if (backupExportBtn) backupExportBtn.addEventListener('click', exportCSV);
+  if (backupDismissBtn) backupDismissBtn.addEventListener('click', snoozeBackupReminder);
 
   // Delete confirm
   document.getElementById('confirmDelete').addEventListener('click', () => {
