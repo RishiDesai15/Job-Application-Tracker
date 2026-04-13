@@ -379,20 +379,130 @@ let pendingDeleteId = null;
 
 const APPS_STORAGE_KEY = 'jobtracker_apps';
 const BOOTSTRAP_STORAGE_KEY = 'jobtracker_bootstrapped_v1';
+const APPS_RECOVERY_BACKUP_KEY = 'jobtracker_apps_backup_v1';
+const BACKUP_META_KEY = 'jobtracker_backup_meta_v1';
+const BACKUP_REMINDER_DAYS = 7;
+const BACKUP_REMINDER_SNOOZE_DAYS = 3;
 
 function isValidApplicationList(value) {
   if (!Array.isArray(value)) return false;
   return value.every(item => item && typeof item === 'object' && !Array.isArray(item));
 }
 
+function parseApplicationsPayload(raw, keyLabel) {
+  if (!raw || !raw.trim()) return null;
+  const parsed = JSON.parse(raw);
+
+  if (keyLabel === APPS_RECOVERY_BACKUP_KEY) {
+    if (!parsed || typeof parsed !== 'object' || !isValidApplicationList(parsed.apps)) {
+      throw new Error('Invalid recovery backup payload');
+    }
+    return parsed.apps;
+  }
+
+  if (!isValidApplicationList(parsed)) {
+    throw new Error('Invalid jobs payload');
+  }
+  return parsed;
+}
+
+function readBackupMeta() {
+  try {
+    const raw = localStorage.getItem(BACKUP_META_KEY);
+    if (!raw || !raw.trim()) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeBackupMeta(meta) {
+  try {
+    localStorage.setItem(BACKUP_META_KEY, JSON.stringify(meta));
+    return true;
+  } catch (err) {
+    console.error('Failed to save backup reminder metadata:', err);
+    return false;
+  }
+}
+
+function daysSince(dateValue) {
+  if (!dateValue) return Infinity;
+  const date = new Date(dateValue);
+  if (isNaN(date)) return Infinity;
+  const diff = Date.now() - date.getTime();
+  return diff / (1000 * 60 * 60 * 24);
+}
+
+function updateBackupReminder() {
+  const banner = document.getElementById('backupBanner');
+  const label = document.getElementById('backupBannerText');
+  if (!banner || !label) return;
+
+  if (!applications.length) {
+    banner.hidden = true;
+    return;
+  }
+
+  const meta = readBackupMeta();
+  const now = Date.now();
+  const snoozeUntil = meta.snoozeUntil ? new Date(meta.snoozeUntil).getTime() : 0;
+  if (snoozeUntil && snoozeUntil > now) {
+    banner.hidden = true;
+    return;
+  }
+
+  const days = daysSince(meta.lastCsvExportAt);
+  if (days >= BACKUP_REMINDER_DAYS) {
+    const suffix = Number.isFinite(days) ? `Last backup ${Math.floor(days)}d ago.` : 'No CSV backup yet.';
+    label.textContent = `Backup reminder: export your applications to CSV. ${suffix}`;
+    banner.hidden = false;
+    return;
+  }
+
+  banner.hidden = true;
+}
+
+function snoozeBackupReminder() {
+  const meta = readBackupMeta();
+  const until = new Date(Date.now() + BACKUP_REMINDER_SNOOZE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  meta.snoozeUntil = until;
+  writeBackupMeta(meta);
+  updateBackupReminder();
+  toast(`Backup reminder snoozed for ${BACKUP_REMINDER_SNOOZE_DAYS} days`, 'success');
+}
+
+function markCsvBackupExported() {
+  const meta = readBackupMeta();
+  meta.lastCsvExportAt = new Date().toISOString();
+  meta.snoozeUntil = null;
+  writeBackupMeta(meta);
+  updateBackupReminder();
+}
+
+function tryRestoreFromRecoveryBackup(rawBackup) {
+  if (!rawBackup || !rawBackup.trim()) return false;
+  try {
+    applications = parseApplicationsPayload(rawBackup, APPS_RECOVERY_BACKUP_KEY);
+    toast('Recovered jobs from internal backup snapshot.', 'success');
+    return true;
+  } catch (err) {
+    console.error('Recovery backup is also invalid:', err);
+    return false;
+  }
+}
+
 // ── INIT ───────────────────────────────────────────────────────────────────
 function init() {
   initTheme();
   let stored = null;
+  let backupStored = null;
   let hasBootstrapped = false;
 
   try {
     stored = localStorage.getItem(APPS_STORAGE_KEY);
+    backupStored = localStorage.getItem(APPS_RECOVERY_BACKUP_KEY);
     hasBootstrapped = localStorage.getItem(BOOTSTRAP_STORAGE_KEY) === '1';
   } catch (err) {
     console.error('Unable to access localStorage on init:', err);
@@ -405,16 +515,18 @@ function init() {
 
   if (stored && stored.trim()) {
     try {
-      const parsed = JSON.parse(stored);
-      if (!isValidApplicationList(parsed)) throw new Error('Invalid jobs payload');
-      applications = parsed;
+      applications = parseApplicationsPayload(stored, APPS_STORAGE_KEY);
     } catch (err) {
       console.error('Corrupted job storage detected:', err);
-      applications = [];
-      toast('Saved jobs are corrupted. Kept empty to avoid overwriting data.', 'error');
+      if (!tryRestoreFromRecoveryBackup(backupStored)) {
+        applications = [];
+        toast('Saved jobs are corrupted. Kept empty to avoid overwriting data.', 'error');
+      }
     }
   } else if (!hasBootstrapped) {
     applications = [...SAMPLE_DATA];
+    save();
+  } else if (tryRestoreFromRecoveryBackup(backupStored)) {
     save();
   } else {
     applications = [];
@@ -423,6 +535,7 @@ function init() {
 
   render();
   bindEvents();
+  updateBackupReminder();
 }
 
 // ── STORAGE ────────────────────────────────────────────────────────────────
@@ -430,6 +543,16 @@ function save() {
   try {
     localStorage.setItem(APPS_STORAGE_KEY, JSON.stringify(applications));
     localStorage.setItem(BOOTSTRAP_STORAGE_KEY, '1');
+
+    try {
+      localStorage.setItem(APPS_RECOVERY_BACKUP_KEY, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        apps: applications,
+      }));
+    } catch (backupErr) {
+      console.warn('Saved primary data but failed to refresh recovery snapshot:', backupErr);
+    }
+
     return true;
   } catch (err) {
     console.error('Failed to persist jobs:', err);
@@ -749,6 +872,8 @@ function bindEvents() {
 
   // CSV export
   document.getElementById('exportCSV').addEventListener('click', exportCSV);
+  document.getElementById('backupExportNow').addEventListener('click', exportCSV);
+  document.getElementById('backupDismiss').addEventListener('click', snoozeBackupReminder);
 
   // Delete confirm
   document.getElementById('confirmDelete').addEventListener('click', () => {
@@ -858,6 +983,7 @@ function exportCSV() {
   a.download = `job-applications-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+  markCsvBackupExported();
   toast('CSV exported ✓', 'success');
 }
 

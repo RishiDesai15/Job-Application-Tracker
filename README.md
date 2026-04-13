@@ -37,8 +37,10 @@ All data is stored in your browser's `localStorage`. It **never leaves your devi
 Storage behavior notes:
 - Sample rows are seeded only on first run.
 - If saved data is missing later, the app does not silently reseed over your history.
+- The app keeps an internal recovery snapshot of your latest saved jobs and attempts auto-restore if the primary storage payload is corrupted.
 - If storage is corrupted or blocked, the app shows an error so you know data could not be loaded/saved.
-- Export CSV periodically as a backup, especially before clearing browser data or switching profiles.
+- A reminder banner appears when CSV backup is overdue (7+ days without export).
+- Export CSV periodically as your portable backup, especially before clearing browser data or switching profiles.
 
 ---
 

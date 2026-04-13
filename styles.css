@@ -303,6 +303,62 @@ header h1 {
   color: var(--green);
 }
 
+.backup-banner {
+  position: relative;
+  z-index: 8;
+  margin: 0.75rem 2rem 0;
+  background: linear-gradient(120deg, rgba(92, 158, 255, 0.14), rgba(45, 212, 160, 0.1));
+  border: 1px solid rgba(92, 158, 255, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.backup-banner-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.backup-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.backup-action,
+.backup-dismiss {
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.backup-action {
+  border: 1px solid var(--green);
+  color: var(--green);
+  background: rgba(45, 212, 160, 0.08);
+}
+
+.backup-action:hover {
+  background: rgba(45, 212, 160, 0.16);
+}
+
+.backup-dismiss {
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--surface2);
+}
+
+.backup-dismiss:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 /* ===========================
    MAIN TABLE
 =========================== */
@@ -741,6 +797,7 @@ select option { background: var(--surface2); }
   header { padding: 1rem; }
   main { padding: 1rem; }
   .filters-bar { padding: 0.75rem 1rem; }
+  .backup-banner { margin: 0.75rem 1rem 0; }
 
   th:nth-child(4),
   td:nth-child(4),
@@ -754,6 +811,13 @@ select option { background: var(--surface2); }
   .form-grid { grid-template-columns: 1fr; }
   .form-group.full-width { grid-column: unset; }
   .header-stats { display: none; }
+  .backup-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .backup-banner-actions {
+    justify-content: flex-end;
+  }
 
   th:nth-child(5),
   td:nth-child(5) { display: none; }
