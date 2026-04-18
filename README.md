@@ -30,7 +30,34 @@ job-tracker/
 ```
 ---
 
-## 💾 Data & Privacy
+## � Getting Started
+
+### Option 1: Browser-Only (No Backend)
+Simply open `index.html` in your browser. Applications will be stored in `localStorage` (temporary, lost if browser data is cleared).
+
+### Option 2: With Server (Persistent File-Based Storage)
+For persistent storage that survives browser cache clears, run the Node.js server:
+
+```bash
+# Install dependencies (if needed)
+npm init -y
+npm install
+
+# Start the server
+node server.js
+```
+
+Then open `http://localhost:3000` in your browser.
+
+**Benefits of server mode:**
+- Companies are stored in `companies.json` (persists across browsers)
+- Applications stored in browser `localStorage` (as before)
+- `companies.json` is git-ignored for privacy
+- Automatic save when you add/edit/delete companies
+
+---
+
+## �💾 Data & Privacy
 
 All data is stored in your browser's `localStorage`. It **never leaves your device** — there's no server, no database, no analytics. To move your data to another browser or device, use the **CSV export** button and re-import manually.
 

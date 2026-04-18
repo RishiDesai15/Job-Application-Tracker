@@ -2,6 +2,7 @@
 
 # Private local data/backups (never commit)
 .private/
+companies.json
 
 # Local exports and backup artifacts
 job-applications-*.csv

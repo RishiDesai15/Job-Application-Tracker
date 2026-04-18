@@ -104,6 +104,69 @@ function daysSince(dateValue) {
   return diff / (1000 * 60 * 60 * 24);
 }
 
+// ── FILE-BASED COMPANIES STORAGE ───────────────────────────────────────────
+async function loadCompaniesFromFile() {
+  try {
+    const response = await fetch('/api/companies');
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        companies = data;
+      } else {
+        companies = [];
+      }
+    } else {
+      companies = [];
+    }
+  } catch (err) {
+    console.warn('Could not load from server, trying direct file fetch:', err);
+    try {
+      const response = await fetch('companies.json');
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          companies = data;
+        } else {
+          companies = [];
+        }
+      } else {
+        companies = [];
+      }
+    } catch (err2) {
+      console.warn('Could not load companies, using empty list:', err2);
+      companies = [];
+    }
+  }
+}
+
+async function saveCompaniesToFile() {
+  try {
+    const response = await fetch('/api/companies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(companies),
+    });
+    if (response.ok) {
+      console.log('Companies saved to file');
+      return true;
+    } else {
+      console.error('Server error:', response.status);
+      return false;
+    }
+  } catch (err) {
+    console.warn('Could not save to server:', err);
+    // Fallback to localStorage
+    try {
+      localStorage.setItem('jobtracker_companies_backup', JSON.stringify(companies));
+      console.log('Companies backed up to localStorage');
+      return true;
+    } catch (e) {
+      console.warn('Could not backup to localStorage:', e);
+      return false;
+    }
+  }
+}
+
 function updateBackupReminder() {
   const banner = document.getElementById('backupBanner');
   const label = document.getElementById('backupBannerText');
@@ -168,13 +231,11 @@ function init() {
   let stored = null;
   let backupStored = null;
   let hasBootstrapped = false;
-  let companiesStored = null;
 
   try {
     stored = localStorage.getItem(APPS_STORAGE_KEY);
     backupStored = localStorage.getItem(APPS_RECOVERY_BACKUP_KEY);
     hasBootstrapped = localStorage.getItem(BOOTSTRAP_STORAGE_KEY) === '1';
-    companiesStored = localStorage.getItem(COMPANIES_STORAGE_KEY);
   } catch (err) {
     console.error('Unable to access localStorage on init:', err);
     applications = [];
@@ -205,23 +266,13 @@ function init() {
     toast('No saved jobs found in this browser profile.', 'error');
   }
 
-  // Load companies
-  if (companiesStored && companiesStored.trim()) {
-    try {
-      companies = JSON.parse(companiesStored);
-      if (!Array.isArray(companies)) companies = [];
-    } catch (err) {
-      console.error('Corrupted companies storage:', err);
-      companies = [];
-    }
-  } else {
-    companies = [];
-  }
-
-  render();
-  bindEvents();
-  updateBackupReminder();
-  renderCompanies();
+  // Load companies from file
+  loadCompaniesFromFile().then(() => {
+    render();
+    bindEvents();
+    updateBackupReminder();
+    renderCompanies();
+  });
 }
 
 // ── STORAGE ────────────────────────────────────────────────────────────────
@@ -252,7 +303,8 @@ function save() {
 
 function saveCompanies() {
   try {
-    localStorage.setItem(COMPANIES_STORAGE_KEY, JSON.stringify(companies));
+    // Save to file (async)
+    saveCompaniesToFile();
     return true;
   } catch (err) {
     console.error('Failed to persist companies:', err);
