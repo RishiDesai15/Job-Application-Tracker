@@ -135,6 +135,39 @@ header h1 {
   margin-top: 2px;
 }
 
+/* ===========================
+   TABS
+=========================== */
+.header-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tab-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .header-stats {
   display: flex;
   gap: 0.5rem;
@@ -503,6 +536,46 @@ td {
 }
 
 .td-emails a:hover { text-decoration: underline; }
+
+/* ===========================
+   COMPANIES TABLE
+=========================== */
+#companiesTable th:nth-child(1) { width: 25%; }
+#companiesTable th:nth-child(2) { width: 35%; }
+#companiesTable th:nth-child(3) { width: 25%; }
+#companiesTable th:nth-child(4) { width: 15%; }
+
+.td-company a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.td-company a:hover {
+  text-decoration: underline;
+}
+
+.td-email a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.td-email a:hover {
+  text-decoration: underline;
+}
+
+.td-link a {
+  color: var(--green);
+  text-decoration: none;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.td-link a:hover {
+  text-decoration: underline;
+}
 
 /* ===========================
    STATUS BADGES

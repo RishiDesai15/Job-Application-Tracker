@@ -36,13 +36,17 @@ const SAMPLE_DATA = [];
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let applications = [];
+let companies = [];
 let currentFilter = 'all';
 let searchQuery   = '';
 let sortCol       = 'appliedDate';
 let sortDir       = 'desc';
 let pendingDeleteId = null;
+let pendingDeleteCompanyId = null;
+let currentTab = 'applications';
 
 const APPS_STORAGE_KEY = 'jobtracker_apps';
+const COMPANIES_STORAGE_KEY = 'jobtracker_companies';
 const BOOTSTRAP_STORAGE_KEY = 'jobtracker_bootstrapped_v1';
 const APPS_RECOVERY_BACKUP_KEY = 'jobtracker_apps_backup_v1';
 const BACKUP_META_KEY = 'jobtracker_backup_meta_v1';
@@ -164,14 +168,17 @@ function init() {
   let stored = null;
   let backupStored = null;
   let hasBootstrapped = false;
+  let companiesStored = null;
 
   try {
     stored = localStorage.getItem(APPS_STORAGE_KEY);
     backupStored = localStorage.getItem(APPS_RECOVERY_BACKUP_KEY);
     hasBootstrapped = localStorage.getItem(BOOTSTRAP_STORAGE_KEY) === '1';
+    companiesStored = localStorage.getItem(COMPANIES_STORAGE_KEY);
   } catch (err) {
     console.error('Unable to access localStorage on init:', err);
     applications = [];
+    companies = [];
     toast('Storage is blocked. Data cannot be loaded or saved.', 'error');
     render();
     bindEvents();
@@ -198,9 +205,23 @@ function init() {
     toast('No saved jobs found in this browser profile.', 'error');
   }
 
+  // Load companies
+  if (companiesStored && companiesStored.trim()) {
+    try {
+      companies = JSON.parse(companiesStored);
+      if (!Array.isArray(companies)) companies = [];
+    } catch (err) {
+      console.error('Corrupted companies storage:', err);
+      companies = [];
+    }
+  } else {
+    companies = [];
+  }
+
   render();
   bindEvents();
   updateBackupReminder();
+  renderCompanies();
 }
 
 // ── STORAGE ────────────────────────────────────────────────────────────────
@@ -225,6 +246,17 @@ function save() {
       ? 'Storage full. Export CSV and free browser storage.'
       : 'Save failed. Changes may not persist after refresh.';
     toast(message, 'error');
+    return false;
+  }
+}
+
+function saveCompanies() {
+  try {
+    localStorage.setItem(COMPANIES_STORAGE_KEY, JSON.stringify(companies));
+    return true;
+  } catch (err) {
+    console.error('Failed to persist companies:', err);
+    toast('Save failed. Companies may not persist after refresh.', 'error');
     return false;
   }
 }
@@ -281,6 +313,36 @@ function render() {
   empty.style.display = 'none';
 
   tbody.innerHTML = data.map(app => rowHTML(app)).join('');
+}
+
+// ── RENDER COMPANIES ──────────────────────────────────────────────────────
+function renderCompanies() {
+  const tbody = document.getElementById('companiesTableBody');
+  const empty = document.getElementById('companiesEmptyState');
+
+  if (!companies || companies.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = companies.map(company => companyRowHTML(company)).join('');
+}
+
+function companyRowHTML(company) {
+  return `
+    <tr data-id="${company.id}">
+      <td class="td-company">${esc(company.name)}</td>
+      <td class="td-email"><a href="mailto:${esc(company.email)}">${esc(company.email)}</a></td>
+      <td class="td-link"><a href="${esc(company.link)}" target="_blank" rel="noopener">Visit Site →</a></td>
+      <td onclick="event.stopPropagation()">
+        <div class="actions">
+          <button class="btn-icon edit" title="Edit" onclick="openEditCompany('${company.id}')">✎</button>
+          <button class="btn-icon del" title="Delete" onclick="openDeleteCompany('${company.id}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
 }
 
 // ── EXPAND ROW ──────────────────────────────────────────────────────────────
@@ -485,11 +547,17 @@ function rowStatusClass(status) {
 
 // ── EVENTS ─────────────────────────────────────────────────────────────────
 function bindEvents() {
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
   // Drag and drop
   setupDragAndDrop();
   
   // Open Add modal
   document.getElementById('openModal').addEventListener('click', () => openAdd());
+  document.getElementById('openCompanyModal').addEventListener('click', () => openAddCompany());
 
   // Close modal buttons
   document.getElementById('closeModal').addEventListener('click', closeModal);
@@ -557,6 +625,30 @@ function bindEvents() {
   document.getElementById('deleteOverlay').addEventListener('click', e => {
     if (e.target === document.getElementById('deleteOverlay')) closeDeleteModal();
   });
+
+  // Company modal
+  document.getElementById('closeCompanyModal').addEventListener('click', closeCompanyModal);
+  document.getElementById('cancelCompanyModal').addEventListener('click', closeCompanyModal);
+  document.getElementById('companyModalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('companyModalOverlay')) closeCompanyModal();
+  });
+  document.getElementById('companyForm').addEventListener('submit', handleCompanySubmit);
+
+  // Delete company confirm
+  document.getElementById('confirmDeleteCompany').addEventListener('click', () => {
+    if (pendingDeleteCompanyId) {
+      companies = companies.filter(c => c.id !== pendingDeleteCompanyId);
+      const saved = saveCompanies();
+      renderCompanies();
+      closeDeleteCompanyModal();
+      toast(saved ? 'Company deleted' : 'Delete applied locally only', 'error');
+    }
+  });
+  document.getElementById('cancelDeleteCompany').addEventListener('click', closeDeleteCompanyModal);
+  document.getElementById('cancelDeleteCompany2').addEventListener('click', closeDeleteCompanyModal);
+  document.getElementById('deleteCompanyOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('deleteCompanyOverlay')) closeDeleteCompanyModal();
+  });
 }
 
 // ── MODAL OPEN/CLOSE ───────────────────────────────────────────────────────
@@ -599,6 +691,73 @@ function closeDeleteModal() {
   document.getElementById('deleteOverlay').classList.remove('open');
 }
 
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+
+  // Update sections visibility
+  const appSection = document.getElementById('applicationsSection');
+  const filtersBar = document.getElementById('applicationsFiltersBar');
+  const companiesSection = document.getElementById('companiesSection');
+  const addAppBtn = document.getElementById('openModal');
+  const addCompanyBtn = document.getElementById('openCompanyModal');
+  const headerStats = document.getElementById('header-stats');
+
+  if (tab === 'applications') {
+    appSection.style.display = 'block';
+    filtersBar.style.display = 'block';
+    companiesSection.style.display = 'none';
+    addAppBtn.style.display = 'block';
+    addCompanyBtn.style.display = 'none';
+    headerStats.style.display = 'flex';
+  } else {
+    appSection.style.display = 'none';
+    filtersBar.style.display = 'none';
+    companiesSection.style.display = 'block';
+    addAppBtn.style.display = 'none';
+    addCompanyBtn.style.display = 'block';
+    headerStats.style.display = 'none';
+  }
+}
+
+// ── COMPANY MODAL ──────────────────────────────────────────────────────────
+function openAddCompany() {
+  document.getElementById('companyModalTitle').textContent = 'New Company';
+  document.getElementById('companyForm').reset();
+  document.getElementById('editCompanyId').value = '';
+  document.getElementById('companyModalOverlay').classList.add('open');
+}
+
+function openEditCompany(id) {
+  const company = companies.find(c => c.id === id);
+  if (!company) return;
+  document.getElementById('companyModalTitle').textContent = 'Edit Company';
+  document.getElementById('editCompanyId').value = company.id;
+  document.getElementById('fCompanyName').value = company.name;
+  document.getElementById('fCompanyEmail').value = company.email;
+  document.getElementById('fCompanyLink').value = company.link;
+  document.getElementById('companyModalOverlay').classList.add('open');
+}
+
+function closeCompanyModal() {
+  document.getElementById('companyModalOverlay').classList.remove('open');
+}
+
+function openDeleteCompany(id) {
+  pendingDeleteCompanyId = id;
+  document.getElementById('deleteCompanyOverlay').classList.add('open');
+}
+
+function closeDeleteCompanyModal() {
+  pendingDeleteCompanyId = null;
+  document.getElementById('deleteCompanyOverlay').classList.remove('open');
+}
+
 // ── FORM SUBMIT ────────────────────────────────────────────────────────────
 function handleSubmit(e) {
   e.preventDefault();
@@ -632,6 +791,36 @@ function handleSubmit(e) {
   );
   render();
   closeModal();
+}
+
+// ── COMPANY FORM SUBMIT ────────────────────────────────────────────────────
+function handleCompanySubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById('editCompanyId').value;
+
+  const company = {
+    id:    id || uid(),
+    name:  document.getElementById('fCompanyName').value.trim(),
+    email: document.getElementById('fCompanyEmail').value.trim(),
+    link:  document.getElementById('fCompanyLink').value.trim(),
+  };
+
+  if (id) {
+    const idx = companies.findIndex(c => c.id === id);
+    if (idx !== -1) companies[idx] = company;
+  } else {
+    companies.unshift(company);
+  }
+
+  const saved = saveCompanies();
+  toast(
+    saved
+      ? (id ? 'Company updated ✓' : 'Company added ✓')
+      : (id ? 'Updated locally only; save failed' : 'Added locally only; save failed'),
+    saved ? 'success' : 'error'
+  );
+  renderCompanies();
+  closeCompanyModal();
 }
 
 // ── CSV EXPORT ─────────────────────────────────────────────────────────────
