@@ -762,7 +762,10 @@ label {
 }
 
 input[type="text"],
+input[type="email"],
+input[type="url"],
 input[type="date"],
+input[type="datetime-local"],
 select,
 textarea {
   background: var(--surface2);
