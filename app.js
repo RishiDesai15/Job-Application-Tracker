@@ -548,20 +548,28 @@ function rowStatusClass(status) {
 // ── EVENTS ─────────────────────────────────────────────────────────────────
 function bindEvents() {
   // Tab switching
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchTab(btn.dataset.tab);
+    });
   });
 
   // Drag and drop
   setupDragAndDrop();
   
   // Open Add modal
-  document.getElementById('openModal').addEventListener('click', () => openAdd());
-  document.getElementById('openCompanyModal').addEventListener('click', () => openAddCompany());
+  const openModal = document.getElementById('openModal');
+  const openCompanyModal = document.getElementById('openCompanyModal');
+  if (openModal) openModal.addEventListener('click', () => openAdd());
+  if (openCompanyModal) openCompanyModal.addEventListener('click', () => openAddCompany());
 
   // Close modal buttons
-  document.getElementById('closeModal').addEventListener('click', closeModal);
-  document.getElementById('cancelModal').addEventListener('click', closeModal);
+  const closeModal_ = document.getElementById('closeModal');
+  const cancelModal = document.getElementById('cancelModal');
+  if (closeModal_) closeModal_.addEventListener('click', closeModal);
+  if (cancelModal) cancelModal.addEventListener('click', closeModal);
 
   // Close on overlay click
   document.getElementById('modalOverlay').addEventListener('click', e => {
@@ -627,28 +635,43 @@ function bindEvents() {
   });
 
   // Company modal
-  document.getElementById('closeCompanyModal').addEventListener('click', closeCompanyModal);
-  document.getElementById('cancelCompanyModal').addEventListener('click', closeCompanyModal);
-  document.getElementById('companyModalOverlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('companyModalOverlay')) closeCompanyModal();
-  });
-  document.getElementById('companyForm').addEventListener('submit', handleCompanySubmit);
+  const closeCompanyModal_ = document.getElementById('closeCompanyModal');
+  const cancelCompanyModal = document.getElementById('cancelCompanyModal');
+  const companyModalOverlay = document.getElementById('companyModalOverlay');
+  const companyForm = document.getElementById('companyForm');
+  const confirmDeleteCompany = document.getElementById('confirmDeleteCompany');
+  const cancelDeleteCompany = document.getElementById('cancelDeleteCompany');
+  const cancelDeleteCompany2 = document.getElementById('cancelDeleteCompany2');
+  const deleteCompanyOverlay = document.getElementById('deleteCompanyOverlay');
+
+  if (closeCompanyModal_) closeCompanyModal_.addEventListener('click', closeCompanyModal);
+  if (cancelCompanyModal) cancelCompanyModal.addEventListener('click', closeCompanyModal);
+  if (companyModalOverlay) {
+    companyModalOverlay.addEventListener('click', e => {
+      if (e.target === companyModalOverlay) closeCompanyModal();
+    });
+  }
+  if (companyForm) companyForm.addEventListener('submit', handleCompanySubmit);
 
   // Delete company confirm
-  document.getElementById('confirmDeleteCompany').addEventListener('click', () => {
-    if (pendingDeleteCompanyId) {
-      companies = companies.filter(c => c.id !== pendingDeleteCompanyId);
-      const saved = saveCompanies();
-      renderCompanies();
-      closeDeleteCompanyModal();
-      toast(saved ? 'Company deleted' : 'Delete applied locally only', 'error');
-    }
-  });
-  document.getElementById('cancelDeleteCompany').addEventListener('click', closeDeleteCompanyModal);
-  document.getElementById('cancelDeleteCompany2').addEventListener('click', closeDeleteCompanyModal);
-  document.getElementById('deleteCompanyOverlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('deleteCompanyOverlay')) closeDeleteCompanyModal();
-  });
+  if (confirmDeleteCompany) {
+    confirmDeleteCompany.addEventListener('click', () => {
+      if (pendingDeleteCompanyId) {
+        companies = companies.filter(c => c.id !== pendingDeleteCompanyId);
+        const saved = saveCompanies();
+        renderCompanies();
+        closeDeleteCompanyModal();
+        toast(saved ? 'Company deleted' : 'Delete applied locally only', 'error');
+      }
+    });
+  }
+  if (cancelDeleteCompany) cancelDeleteCompany.addEventListener('click', closeDeleteCompanyModal);
+  if (cancelDeleteCompany2) cancelDeleteCompany2.addEventListener('click', closeDeleteCompanyModal);
+  if (deleteCompanyOverlay) {
+    deleteCompanyOverlay.addEventListener('click', e => {
+      if (e.target === deleteCompanyOverlay) closeDeleteCompanyModal();
+    });
+  }
 }
 
 // ── MODAL OPEN/CLOSE ───────────────────────────────────────────────────────
@@ -709,19 +732,19 @@ function switchTab(tab) {
   const headerStats = document.getElementById('header-stats');
 
   if (tab === 'applications') {
-    appSection.style.display = 'block';
-    filtersBar.style.display = 'block';
-    companiesSection.style.display = 'none';
-    addAppBtn.style.display = 'block';
-    addCompanyBtn.style.display = 'none';
-    headerStats.style.display = 'flex';
-  } else {
-    appSection.style.display = 'none';
-    filtersBar.style.display = 'none';
-    companiesSection.style.display = 'block';
-    addAppBtn.style.display = 'none';
-    addCompanyBtn.style.display = 'block';
-    headerStats.style.display = 'none';
+    if (appSection) appSection.style.display = 'block';
+    if (filtersBar) filtersBar.style.display = 'block';
+    if (companiesSection) companiesSection.style.display = 'none';
+    if (addAppBtn) addAppBtn.style.display = 'block';
+    if (addCompanyBtn) addCompanyBtn.style.display = 'none';
+    if (headerStats) headerStats.style.display = 'flex';
+  } else if (tab === 'companies') {
+    if (appSection) appSection.style.display = 'none';
+    if (filtersBar) filtersBar.style.display = 'none';
+    if (companiesSection) companiesSection.style.display = 'block';
+    if (addAppBtn) addAppBtn.style.display = 'none';
+    if (addCompanyBtn) addCompanyBtn.style.display = 'block';
+    if (headerStats) headerStats.style.display = 'none';
   }
 }
 

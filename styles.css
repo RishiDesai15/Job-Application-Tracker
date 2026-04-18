@@ -142,30 +142,39 @@ header h1 {
   display: flex;
   gap: 0.5rem;
   margin: 0 auto;
+  align-items: center;
 }
 
 .tab-btn {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 13px;
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  user-select: none;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
+  background: rgba(92, 158, 255, 0.05);
 }
 
 .tab-btn.active {
   background: var(--accent-glow);
   border-color: var(--accent);
   color: var(--accent);
+  font-weight: 600;
+}
+
+.tab-btn:active {
+  transform: scale(0.98);
 }
 
 .header-stats {
