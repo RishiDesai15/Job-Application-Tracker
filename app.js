@@ -670,6 +670,10 @@ function bindEvents() {
   if (backupExportBtn) backupExportBtn.addEventListener('click', exportCSV);
   if (backupDismissBtn) backupDismissBtn.addEventListener('click', snoozeBackupReminder);
 
+  // CSV export for companies
+  const exportCompaniesCsvBtn = document.getElementById('exportCompaniesCsv');
+  if (exportCompaniesCsvBtn) exportCompaniesCsvBtn.addEventListener('click', exportCompaniesCsv);
+
   // Delete confirm
   document.getElementById('confirmDelete').addEventListener('click', () => {
     if (pendingDeleteId) {
@@ -782,6 +786,7 @@ function switchTab(tab) {
   const addAppBtn = document.getElementById('openModal');
   const addCompanyBtn = document.getElementById('openCompanyModal');
   const headerStats = document.getElementById('header-stats');
+  const companiesToolbar = document.getElementById('companiesToolbar');
 
   if (tab === 'applications') {
     if (appSection) appSection.style.display = 'block';
@@ -790,6 +795,7 @@ function switchTab(tab) {
     if (addAppBtn) addAppBtn.style.display = 'block';
     if (addCompanyBtn) addCompanyBtn.style.display = 'none';
     if (headerStats) headerStats.style.display = 'flex';
+    if (companiesToolbar) companiesToolbar.style.display = 'none';
   } else if (tab === 'companies') {
     if (appSection) appSection.style.display = 'none';
     if (filtersBar) filtersBar.style.display = 'none';
@@ -797,6 +803,7 @@ function switchTab(tab) {
     if (addAppBtn) addAppBtn.style.display = 'none';
     if (addCompanyBtn) addCompanyBtn.style.display = 'block';
     if (headerStats) headerStats.style.display = 'none';
+    if (companiesToolbar) companiesToolbar.style.display = 'flex';
   }
 }
 
@@ -916,6 +923,26 @@ function exportCSV() {
   URL.revokeObjectURL(url);
   markCsvBackupExported();
   toast('CSV exported ✓', 'success');
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+
+// ── CSV EXPORT COMPANIES ───────────────────────────────────────────────────
+function exportCompaniesCsv() {
+  const headers = ['Company Name','Email','Link'];
+  const rows = companies.map(c => [
+    c.name, c.email, c.link
+  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `companies-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Companies CSV exported ✓', 'success');
 }
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
