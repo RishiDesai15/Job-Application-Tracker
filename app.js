@@ -39,8 +39,11 @@ let applications = [];
 let companies = [];
 let currentFilter = 'all';
 let searchQuery   = '';
+let companiesSearchQuery = '';
 let sortCol       = 'appliedDate';
+let companiesSortCol = 'name';
 let sortDir       = 'desc';
+let companiesSortDir = 'asc';
 let pendingDeleteId = null;
 let pendingDeleteCompanyId = null;
 let currentTab = 'applications';
@@ -372,14 +375,35 @@ function renderCompanies() {
   const tbody = document.getElementById('companiesTableBody');
   const empty = document.getElementById('companiesEmptyState');
 
-  if (!companies || companies.length === 0) {
+  let data = [...companies];
+
+  // Search
+  if (companiesSearchQuery) {
+    const q = companiesSearchQuery.toLowerCase();
+    data = data.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      (c.link || '').toLowerCase().includes(q)
+    );
+  }
+
+  // Sort
+  data.sort((a, b) => {
+    let av = (a[companiesSortCol] || '').toLowerCase();
+    let bv = (b[companiesSortCol] || '').toLowerCase();
+    if (av < bv) return companiesSortDir === 'asc' ? -1 : 1;
+    if (av > bv) return companiesSortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  if (!data || data.length === 0) {
     tbody.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
 
-  tbody.innerHTML = companies.map(company => companyRowHTML(company)).join('');
+  tbody.innerHTML = data.map(company => companyRowHTML(company)).join('');
 }
 
 function companyRowHTML(company) {
@@ -637,6 +661,15 @@ function bindEvents() {
     render();
   });
 
+  // Companies search
+  const companiesSearchInput = document.getElementById('companiesSearchInput');
+  if (companiesSearchInput) {
+    companiesSearchInput.addEventListener('input', e => {
+      companiesSearchQuery = e.target.value;
+      renderCompanies();
+    });
+  }
+
   // Filter pills
   document.querySelectorAll('.pill').forEach(pill => {
     pill.addEventListener('click', () => {
@@ -783,27 +816,33 @@ function switchTab(tab) {
   const appSection = document.getElementById('applicationsSection');
   const filtersBar = document.getElementById('applicationsFiltersBar');
   const companiesSection = document.getElementById('companiesSection');
+  const companiesFiltersBar = document.getElementById('companiesFiltersBar');
   const addAppBtn = document.getElementById('openModal');
   const addCompanyBtn = document.getElementById('openCompanyModal');
   const headerStats = document.getElementById('header-stats');
   const companiesToolbar = document.getElementById('companiesToolbar');
+  const backupBanner = document.getElementById('backupBanner');
 
   if (tab === 'applications') {
     if (appSection) appSection.style.display = 'block';
     if (filtersBar) filtersBar.style.display = 'block';
     if (companiesSection) companiesSection.style.display = 'none';
+    if (companiesFiltersBar) companiesFiltersBar.style.display = 'none';
     if (addAppBtn) addAppBtn.style.display = 'block';
     if (addCompanyBtn) addCompanyBtn.style.display = 'none';
     if (headerStats) headerStats.style.display = 'flex';
     if (companiesToolbar) companiesToolbar.style.display = 'none';
+    if (backupBanner) backupBanner.hidden = false;
   } else if (tab === 'companies') {
     if (appSection) appSection.style.display = 'none';
     if (filtersBar) filtersBar.style.display = 'none';
     if (companiesSection) companiesSection.style.display = 'block';
+    if (companiesFiltersBar) companiesFiltersBar.style.display = 'flex';
     if (addAppBtn) addAppBtn.style.display = 'none';
     if (addCompanyBtn) addCompanyBtn.style.display = 'block';
     if (headerStats) headerStats.style.display = 'none';
     if (companiesToolbar) companiesToolbar.style.display = 'flex';
+    if (backupBanner) backupBanner.hidden = true;
   }
 }
 
