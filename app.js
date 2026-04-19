@@ -334,11 +334,9 @@ function save() {
   }
 }
 
-function saveCompanies() {
+async function saveCompanies() {
   try {
-    // Save to file (async)
-    saveCompaniesToFile();
-    return true;
+    return await saveCompaniesToFile();
   } catch (err) {
     console.error('Failed to persist companies:', err);
     toast('Save failed. Companies may not persist after refresh.', 'error');
@@ -781,10 +779,10 @@ function bindEvents() {
 
   // Delete company confirm
   if (confirmDeleteCompany) {
-    confirmDeleteCompany.addEventListener('click', () => {
+    confirmDeleteCompany.addEventListener('click', async () => {
       if (pendingDeleteCompanyId) {
         companies = companies.filter(c => c.id !== pendingDeleteCompanyId);
-        const saved = saveCompanies();
+        const saved = await saveCompanies();
         renderCompanies();
         closeDeleteCompanyModal();
         toast(saved ? 'Company deleted' : 'Delete applied locally only', 'error');
@@ -949,7 +947,7 @@ function handleSubmit(e) {
 }
 
 // ── COMPANY FORM SUBMIT ────────────────────────────────────────────────────
-function handleCompanySubmit(e) {
+async function handleCompanySubmit(e) {
   e.preventDefault();
   const id = document.getElementById('editCompanyId').value;
 
@@ -967,7 +965,7 @@ function handleCompanySubmit(e) {
     companies.unshift(company);
   }
 
-  const saved = saveCompanies();
+  const saved = await saveCompanies();
   toast(
     saved
       ? (id ? 'Company updated ✓' : 'Company added ✓')
