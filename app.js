@@ -820,7 +820,6 @@ function switchTab(tab) {
   const addAppBtn = document.getElementById('openModal');
   const addCompanyBtn = document.getElementById('openCompanyModal');
   const headerStats = document.getElementById('header-stats');
-  const companiesToolbar = document.getElementById('companiesToolbar');
   const backupBanner = document.getElementById('backupBanner');
 
   if (tab === 'applications') {
@@ -831,8 +830,7 @@ function switchTab(tab) {
     if (addAppBtn) addAppBtn.style.display = 'block';
     if (addCompanyBtn) addCompanyBtn.style.display = 'none';
     if (headerStats) headerStats.style.display = 'flex';
-    if (companiesToolbar) companiesToolbar.style.display = 'none';
-    if (backupBanner) backupBanner.hidden = false;
+    updateBackupReminder();
   } else if (tab === 'companies') {
     if (appSection) appSection.style.display = 'none';
     if (filtersBar) filtersBar.style.display = 'none';
@@ -841,8 +839,7 @@ function switchTab(tab) {
     if (addAppBtn) addAppBtn.style.display = 'none';
     if (addCompanyBtn) addCompanyBtn.style.display = 'block';
     if (headerStats) headerStats.style.display = 'none';
-    if (companiesToolbar) companiesToolbar.style.display = 'flex';
-    if (backupBanner) backupBanner.hidden = false;
+    if (backupBanner) backupBanner.hidden = true;
   }
 }
 
