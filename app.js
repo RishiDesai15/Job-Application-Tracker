@@ -402,6 +402,7 @@ function render() {
 function renderCompanies() {
   const tbody = document.getElementById('companiesTableBody');
   const empty = document.getElementById('companiesEmptyState');
+  if (!tbody || !empty) return;
 
   let data = [...companies];
 
@@ -409,7 +410,7 @@ function renderCompanies() {
   if (companiesSearchQuery) {
     const q = companiesSearchQuery.toLowerCase();
     data = data.filter(c =>
-      c.name.toLowerCase().includes(q) ||
+      (c.name || '').toLowerCase().includes(q) ||
       (c.email || '').toLowerCase().includes(q) ||
       (c.link || '').toLowerCase().includes(q)
     );
@@ -435,12 +436,14 @@ function renderCompanies() {
 }
 
 function companyRowHTML(company) {
+  const name = (company.name || '').trim();
   const email = (company.email || '').trim();
+  const link = (company.link || '').trim();
   return `
     <tr data-id="${company.id}">
-      <td class="td-company">${esc(company.name)}</td>
+      <td class="td-company">${esc(name || 'Untitled Company')}</td>
       <td class="td-email">${email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : '<span style="color: var(--muted);">-</span>'}</td>
-      <td class="td-link"><a href="${esc(company.link)}" target="_blank" rel="noopener">Visit Site →</a></td>
+      <td class="td-link">${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">Visit Site →</a>` : '<span style="color: var(--muted);">-</span>'}</td>
       <td onclick="event.stopPropagation()">
         <div class="actions">
           <button class="btn-icon edit" title="Edit" onclick="openEditCompany('${company.id}')">✎</button>
@@ -875,6 +878,7 @@ function switchTab(tab) {
     if (addCompanyBtn) addCompanyBtn.style.display = 'block';
     if (headerStats) headerStats.style.display = 'none';
     if (backupBanner) backupBanner.hidden = true;
+    renderCompanies();
   }
 }
 
