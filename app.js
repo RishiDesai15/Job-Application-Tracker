@@ -290,7 +290,7 @@ function init() {
       }
     }
   } else if (!hasBootstrapped) {
-    applications = [...SAMPLE_DATA];
+    applications = [];
     save();
   } else if (tryRestoreFromRecoveryBackup(backupStored)) {
     save();
