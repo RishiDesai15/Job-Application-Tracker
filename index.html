@@ -36,13 +36,13 @@
       <input type="text" id="searchInput" placeholder="Search company, role, notes…" />
     </div>
     <div class="filter-pills" id="filterPills">
-      <button class="pill active" data-filter="all">All</button>
-      <button class="pill" data-filter="Interview">Interview</button>
-      <button class="pill" data-filter="Rejected">Rejected</button>
-      <button class="pill" data-filter="Waiting">Waiting</button>
-    <button class="pill" data-filter="INT but Rejected">INT but Rejected</button>
-      <button class="pill" data-filter="Offer">Offer 🎉</button>
-      <button class="pill" data-filter="">Pending</button>
+    <button class="pill active" data-filter="all">All</button>
+    <button class="pill" data-filter="Interview">Interview</button>
+    <button class="pill" data-filter="Rejected">Rejected</button>
+    <button class="pill" data-filter="Waiting">Waiting</button>
+    <button class="pill" data-filter="IBR">IBR</button>
+    <button class="pill" data-filter="Offer">Offer 🎉</button>
+    <button class="pill" data-filter="">Pending</button>
     </div>
     <button class="btn-export" id="exportCSV" title="Export to CSV">↓ CSV</button>
   </div>
@@ -138,7 +138,7 @@
             <select id="fResponse">
               <option value="">Pending</option>
               <option value="Interview">Interview</option>
-              <option value="INT but Rejected">INT but Rejected</option>
+              <option value="IBR">IBR</option>
               <option value="Waiting">Waiting</option>
               <option value="Rejected">Rejected</option>
               <option value="Offer">Offer 🎉</option>

@@ -301,11 +301,33 @@ function init() {
 
   // Load companies from file
   loadCompaniesFromFile().then(() => {
+    // Normalize any legacy/removed status labels to current values
+    normalizeResponses();
     render();
     bindEvents();
     updateBackupReminder();
     renderCompanies();
   });
+}
+
+function normalizeResponses() {
+  if (!Array.isArray(applications) || !applications.length) return;
+  let changed = false;
+  applications.forEach(a => {
+    if (!a || typeof a !== 'object') return;
+    if (a.response === 'INT but Rejected' || a.response === 'Intro Call') {
+      a.response = 'IBR';
+      changed = true;
+    }
+    if (a.response === 'Withdrawn') {
+      a.response = '';
+      changed = true;
+    }
+  });
+  if (changed) {
+    save();
+    toast('Normalized status labels to IBR', 'success');
+  }
 }
 
 // ── STORAGE ────────────────────────────────────────────────────────────────
@@ -629,7 +651,7 @@ function badgeHTML(status) {
     'Interview':  'badge-interview',
     'Rejected':   'badge-rejected',
     'Waiting':    'badge-waiting',
-    'INT but Rejected': 'badge-intro',
+    'IBR': 'badge-intro',
     'Offer':      'badge-offer',
     'Offer 🎉':   'badge-offer',
     '':           'badge-pending',
@@ -644,7 +666,7 @@ function rowStatusClass(status) {
     'Interview':  'row-interview',
     'Rejected':   'row-rejected',
     'Waiting':    'row-waiting',
-    'INT but Rejected': 'row-intro',
+    'IBR': 'row-intro',
     'Offer':      'row-offer',
     'Offer 🎉':   'row-offer',
   };

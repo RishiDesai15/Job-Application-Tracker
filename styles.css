@@ -609,7 +609,7 @@ td {
 .badge-interview { background: var(--green-bg); color: var(--green); border: 1px solid rgba(45,212,160,0.25); }
 .badge-rejected  { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,107,122,0.25); }
 .badge-waiting   { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(245,200,66,0.25); }
-.badge-intro     { background: var(--blue-bg);  color: var(--blue);  border: 1px solid rgba(92,158,255,0.25); }
+.badge-intro     { background: var(--orange-bg);  color: var(--orange);  border: 1px solid rgba(255,154,92,0.25); }
 .badge-offer     { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(181,123,255,0.3); }
 .badge-withdrawn { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(255,154,92,0.25); }
 .badge-pending   { background: rgba(107,115,148,0.15); color: var(--muted); border: 1px solid var(--border); }
@@ -618,7 +618,7 @@ td {
 .row-interview  { border-left: 3px solid var(--green) !important; }
 .row-rejected   { border-left: 3px solid var(--red) !important; }
 .row-waiting    { border-left: 3px solid var(--yellow) !important; }
-.row-intro      { border-left: 3px solid var(--blue) !important; }
+.row-intro      { border-left: 3px solid var(--orange) !important; }
 .row-offer      { border-left: 3px solid var(--purple) !important; }
 .row-withdrawn  { border-left: 3px solid var(--orange) !important; }
 
