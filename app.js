@@ -588,6 +588,7 @@ function renderStats() {
   const total      = applications.length;
   const interviews = applications.filter(a => a.response === 'Interview').length;
   const rejected   = applications.filter(a => a.response === 'Rejected').length;
+  const ibr        = applications.filter(a => a.response === 'IBR').length;
   const offers     = applications.filter(a => a.response === 'Offer').length;
   const pending    = applications.filter(a => !a.response).length;
 
@@ -595,6 +596,7 @@ function renderStats() {
     <div class="stat-chip">Total <span>${total}</span></div>
     <div class="stat-chip">Interviews <span style="color:var(--green)">${interviews}</span></div>
     <div class="stat-chip">Rejected <span style="color:var(--red)">${rejected}</span></div>
+    <div class="stat-chip">IBR <span style="color:var(--orange)">${ibr}</span></div>
     ${offers ? `<div class="stat-chip">Offers <span style="color:var(--purple)">${offers}</span></div>` : ''}
     <div class="stat-chip">Pending <span>${pending}</span></div>
   `;
