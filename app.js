@@ -625,9 +625,11 @@ function formatDateTime(dt) {
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
+    const rawHours = date.getHours();
+    const hours = rawHours % 12 || 12;
     const mins = String(date.getMinutes()).padStart(2, '0');
-    return `${month}/${day}/${year} ${hours}:${mins}`;
+    const meridiem = rawHours >= 12 ? 'PM' : 'AM';
+    return `${month}/${day}/${year} ${hours}:${mins} ${meridiem}`;
   } catch { return dt; }
 }
 
