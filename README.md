@@ -8,6 +8,7 @@ A clean, dark-themed, interactive job application tracker that lives entirely in
 
 - **Add / Edit / Delete** applications with a smooth modal UI
 - **Color-coded status badges** — Interview, Rejected, Waiting, Intro Call, Offer, Withdrawn, Pending
+ - **Color-coded status badges** — Interview, Rejected, Waiting, INT but Rejected, Offer, Pending
 - **Filter by status** with one-click pill buttons
 - **Search** across company, position, notes, and contact info
 - **Sort** by company, position, or applied date
@@ -84,11 +85,10 @@ Important: if real job data was committed in older commits, remove or rewrite hi
 | Status     | Color         |
 |------------|---------------|
 | Interview  | 🟢 Green      |
-| Intro Call | 🔵 Blue       |
 | Waiting    | 🟡 Yellow     |
 | Rejected   | 🔴 Red        |
 | Offer      | 🟣 Purple     |
-| Withdrawn  | 🟠 Orange     |
+| INT but Rejected | 🔵 Blue       |
 | Pending    | ⚪ Grey       |
 
 ---

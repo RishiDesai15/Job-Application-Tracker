@@ -629,10 +629,9 @@ function badgeHTML(status) {
     'Interview':  'badge-interview',
     'Rejected':   'badge-rejected',
     'Waiting':    'badge-waiting',
-    'Intro Call': 'badge-intro',
+    'INT but Rejected': 'badge-intro',
     'Offer':      'badge-offer',
     'Offer 🎉':   'badge-offer',
-    'Withdrawn':  'badge-withdrawn',
     '':           'badge-pending',
   };
   const cls  = map[status] || 'badge-pending';
@@ -645,10 +644,9 @@ function rowStatusClass(status) {
     'Interview':  'row-interview',
     'Rejected':   'row-rejected',
     'Waiting':    'row-waiting',
-    'Intro Call': 'row-intro',
+    'INT but Rejected': 'row-intro',
     'Offer':      'row-offer',
     'Offer 🎉':   'row-offer',
-    'Withdrawn':  'row-withdrawn',
   };
   return map[status] || '';
 }
