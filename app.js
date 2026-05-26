@@ -760,6 +760,18 @@ function bindEvents() {
 
   // CSV export
   document.getElementById('exportCSV').addEventListener('click', exportCSV);
+  // CSV import
+  const importBtn = document.getElementById('importCSV');
+  const importInput = document.getElementById('importCSVInput');
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) importCSVFile(file);
+      // clear value so same file can be re-selected later
+      importInput.value = '';
+    });
+  }
   const backupExportBtn = document.getElementById('backupExportNow');
   const backupDismissBtn = document.getElementById('backupDismiss');
   if (backupExportBtn) backupExportBtn.addEventListener('click', exportCSV);
@@ -1022,6 +1034,103 @@ function exportCSV() {
   URL.revokeObjectURL(url);
   markCsvBackupExported();
   toast('CSV exported ✓', 'success');
+}
+
+// ── CSV IMPORT ─────────────────────────────────────────────────────────────
+function importCSVFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = parseApplicationsCsv(String(reader.result || ''));
+      if (!parsed || !parsed.length) {
+        toast('No valid rows found in CSV', 'error');
+        return;
+      }
+
+      // Ask user whether to replace or append when there are existing entries
+      let appsWithIds = parsed.map(p => ({ id: uid(), ...p }));
+      if (applications && applications.length) {
+        const replace = confirm(`Imported ${appsWithIds.length} rows. OK = replace existing, Cancel = append`);
+        if (replace) applications = appsWithIds;
+        else applications = appsWithIds.concat(applications);
+      } else {
+        applications = appsWithIds;
+      }
+
+      const saved = save();
+      render();
+      toast(saved ? `Imported ${parsed.length} applications` : 'Imported locally only', saved ? 'success' : 'error');
+    } catch (err) {
+      console.error('Import failed:', err);
+      toast('Failed to import CSV', 'error');
+    }
+  };
+  reader.onerror = () => toast('Failed to read file', 'error');
+  reader.readAsText(file);
+}
+
+function parseApplicationsCsv(text) {
+  if (!text) return [];
+  // Normalize line endings and split lines, keep empty lines removed
+  const lines = String(text).replace(/\r\n/g, '\n').split('\n');
+  // find first non-empty line as header
+  let headerLineIndex = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() !== '') { headerLineIndex = i; break; }
+  }
+  if (headerLineIndex === -1) return [];
+
+  const headers = splitCsvLine(lines[headerLineIndex]).map(h => h.replace(/^\s+|\s+$/g, ''));
+  const rows = [];
+  for (let i = headerLineIndex + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === '') continue;
+    const cols = splitCsvLine(line).map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"'));
+    const obj = {};
+    for (let j = 0; j < headers.length; j++) {
+      obj[headers[j]] = cols[j] !== undefined ? cols[j] : '';
+    }
+
+    // Map CSV headers to application shape ( tolerate slightly different header names )
+    const app = {
+      company: (obj['Company'] || obj['company'] || '').trim(),
+      position: (obj['Position'] || obj['position'] || '').trim(),
+      response: ((obj['Status'] || obj['status'] || '') === 'Pending') ? '' : (obj['Status'] || obj['status'] || '').trim(),
+      notes: (obj['Notes'] || obj['notes'] || '').trim(),
+      appliedDate: (obj['Applied Date'] || obj['applied_date'] || obj['appliedDate'] || '').trim(),
+      result: (obj['Result'] || obj['result'] || '').trim(),
+      interviewTime: (obj['Interview Time'] || obj['interview_time'] || obj['interviewTime'] || '').trim(),
+      emails: (obj['Emails'] || obj['emails'] || '').replace(/ \| /g, '\n').trim(),
+    };
+
+    // Require at least a company or position to consider valid
+    if (app.company || app.position) rows.push(app);
+  }
+  return rows;
+}
+
+function splitCsvLine(line) {
+  const res = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i++; // skip escaped quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      res.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  res.push(cur);
+  return res;
 }
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
