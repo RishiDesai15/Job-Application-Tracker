@@ -132,6 +132,20 @@ function daysSince(dateValue) {
 
 // ── FILE-BASED COMPANIES STORAGE ───────────────────────────────────────────
 async function loadCompaniesFromFile() {
+  // DOM-embedded fallback: some users open the file via file:// where fetch may fail
+  try {
+    const embedded = document.getElementById('embeddedCompanies');
+    if (embedded && embedded.textContent && embedded.textContent.trim()) {
+      const data = JSON.parse(embedded.textContent);
+      if (Array.isArray(data)) {
+        companies = data;
+        writeCompaniesBackup(companies);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse embedded companies JSON:', e);
+  }
   try {
     const response = await fetch('/api/companies');
     if (response.ok) {
