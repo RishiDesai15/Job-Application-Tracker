@@ -347,6 +347,26 @@ header h1 {
   color: var(--green);
 }
 
+/* Import button matches export button style */
+.btn-import {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+.btn-import:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .backup-banner {
   position: relative;
   z-index: 8;
