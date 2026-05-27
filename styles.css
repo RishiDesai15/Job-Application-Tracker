@@ -825,6 +825,13 @@ select option { background: var(--surface2); }
   margin-top: 1.25rem;
 }
 
+/* Center the confirm message in confirm modals */
+.modal.confirm-modal p {
+  text-align: center;
+  width: 100%;
+  display: block;
+}
+
 .btn-cancel {
   background: transparent;
   border: 1px solid var(--border);
